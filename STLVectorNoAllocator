@@ -1,5 +1,7 @@
 #include <iostream>
 
+// no std::optional variant
+
 template<typename T, typename N>
 class MyVector {
     private:
@@ -20,6 +22,10 @@ class MyVector {
 
     public:
         MyVector() : data(nullptr), size_(0), capacity_(0) {}; 
+        
+        ~MyVector(){
+            delete[] data_;
+        }
 
         MyVector(const MyVector& other) : capacity_(other.capacity_), size_(other.size_){
             data_ = new T[capacity_];
@@ -28,6 +34,22 @@ class MyVector {
         MyVector(MyVector&& other) noexcept : data_(other.data_), size_(other.size_), capacity_(other.capacity_){
             other.data_ = nullptr;
         }
+
+        MyVector& operator=(const MyVector& other){
+            if (this != &other){
+                size_ = other.size_;
+                capacity_ = other.capacity_;
+                delete[] data_;
+                data_ = new T[other.capacity_];
+                for (int i = 0; i < other.data_.size(); i++){
+                    data_[i] = other.data_[i];
+                }
+            }
+            return *this;
+        }
+
+
+
         
 
     
