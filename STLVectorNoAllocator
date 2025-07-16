@@ -48,6 +48,33 @@ class MyVector {
             return *this;
         }
 
+        MyVector& operator=(MyVector&& other) noexcept{
+            if (this != &other){
+                size_ = other.size_;
+                capacity_ = other.capacity_;
+                delete[] data_;
+                data_ = other.data_;
+                other.data_ = nullptr;
+            }
+            return *this;
+        }
+
+        void push_back(const T& element){
+            if (size_ = capacity_){
+                grow();
+            }
+            data_[size_++] = element;
+        }
+
+        void push_back(T&& element){
+            if (size_ = capacity_){
+                grow();
+            }
+            data_[size_++] = std::move(element);
+        }
+
+
+
 
 
         

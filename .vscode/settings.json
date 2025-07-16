@@ -1,5 +1,9 @@
 {
     "files.associations": {
-        "stlvectornoallocator": "cpp"
+        "stlvectornoallocator": "cpp",
+        "__bit_reference": "cpp",
+        "__split_buffer": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
     }
 }
