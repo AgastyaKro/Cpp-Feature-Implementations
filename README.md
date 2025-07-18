@@ -1,5 +1,15 @@
 Want to implement next:
-1. Forward template 
-2. std::optional
-3. std::variant
-4. Hashmap
+Forward template 
+std::optional
+std::variant
+Hashmap
+shared_ptr
+unique_ptr
+ellipse practice
+std::expected
+std::span
+mutex
+sempahore
+std::span
+std::mdspan
+circular queue
