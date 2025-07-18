@@ -1,15 +1,30 @@
-Want to implement next:
-Forward template 
-std::optional
-std::variant
-Hashmap
-shared_ptr
-unique_ptr
-ellipse practice
-std::expected
-std::span
-mutex
-sempahore
-std::span
-std::mdspan
-circular queue
+
+---
+
+## C++ Feature Demos
+
+Minimal examples of core and modern C++ features.
+
+### Implemented
+
+* `std::vector` (no allocators)
+* Circular queue
+* Parsing logic
+* Constructor behavior and initialization
+
+### Planned
+
+* `std::forward` and perfect forwarding
+* `std::optional`
+* `std::variant`
+* Hash map
+* `std::shared_ptr`
+* `std::unique_ptr`
+* Variadic templates / ellipsis
+* `std::expected`
+* `std::span`
+* `std::mdspan`
+* `std::mutex`
+* `std::semaphore`
+
+
