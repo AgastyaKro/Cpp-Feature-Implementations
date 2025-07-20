@@ -1,5 +1,3 @@
-
-
 template<typename T>
 class MyUniquePtr{
     private:
@@ -16,18 +14,41 @@ class MyUniquePtr{
         MyUniquePtr& operator=(const MyUniquePtr& other) = delete;
 
         MyUniquePtr& operator=(MyUniquePtr&& other){
-            if (this != other){
+            if (this != &other){
                 delete ptr_;
                 ptr_ = other.ptr_;
                 other.ptr_ = nullptr;
-                return *this;
             }
+            return *this;
+
         }
 
         MyUniquePtr(MyUniquePtr&& other){
             ptr_ = other.ptr_;
             other.ptr_ = nullptr;
         }
-    
 
-}
+        T* operator->() const{
+            return ptr_;
+        }
+
+        T& operator*() const {
+            return *ptr_;
+        }
+
+        T* get() const{
+            return ptr_;
+        }
+
+        T* release(){
+            T* temp = ptr_;
+            ptr_ = nullptr;
+            return temp;
+        }
+
+        void reset(T* other = nullptr){
+            delete ptr_;
+            ptr_ = other;
+        }
+    
+};
