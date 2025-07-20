@@ -13,7 +13,7 @@ class MyUniquePtr{
         MyUniquePtr(const MyUniquePtr& other) = delete;
         MyUniquePtr& operator=(const MyUniquePtr& other) = delete;
 
-        MyUniquePtr& operator=(MyUniquePtr&& other){
+        MyUniquePtr& operator=(MyUniquePtr&& other) noexcept{
             if (this != &other){
                 delete ptr_;
                 ptr_ = other.ptr_;
@@ -23,7 +23,7 @@ class MyUniquePtr{
 
         }
 
-        MyUniquePtr(MyUniquePtr&& other){
+        MyUniquePtr(MyUniquePtr&& other) noexcept{
             ptr_ = other.ptr_;
             other.ptr_ = nullptr;
         }
@@ -49,6 +49,11 @@ class MyUniquePtr{
         void reset(T* other = nullptr){
             delete ptr_;
             ptr_ = other;
+        }
+
+        template<typename... Types>
+        auto operator()(Types&&... args) const{
+            return (*ptr_)(std::forward<Types>(args)...);
         }
     
 };
