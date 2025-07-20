@@ -1,0 +1,33 @@
+
+
+template<typename T>
+class MyUniquePtr{
+    private:
+        T* ptr_{};
+
+    public:
+        MyUniquePtr() {};
+        MyUniquePtr(T* ptr) : ptr_(ptr) {}
+        ~MyUniquePtr(){
+            delete ptr_;
+        }
+
+        MyUniquePtr(const MyUniquePtr& other) = delete;
+        MyUniquePtr& operator=(const MyUniquePtr& other) = delete;
+
+        MyUniquePtr& operator=(MyUniquePtr&& other){
+            if (this != other){
+                delete ptr_;
+                ptr_ = other.ptr_;
+                other.ptr_ = nullptr;
+                return *this;
+            }
+        }
+
+        MyUniquePtr(MyUniquePtr&& other){
+            ptr_ = other.ptr_;
+            other.ptr_ = nullptr;
+        }
+    
+
+}

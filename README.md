@@ -26,5 +26,8 @@ Minimal examples of core and modern C++ features.
 * `std::mdspan`
 * `std::mutex`
 * `std::semaphore`
+* `implenemting user defined literals`
+* `std::string`
+* `std::swap`
 
 
