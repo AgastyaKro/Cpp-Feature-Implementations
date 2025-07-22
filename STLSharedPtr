@@ -1,0 +1,16 @@
+#include <iostream>
+#include <utility>
+
+struct ControlBlock{
+    size_t sharedPtCount;
+    size_t weakPtrCount;
+    mutable std::mutex mutex;
+};
+
+template<typename T>
+class MySharedPtr{
+    private:
+        T* ptr = nullptr;
+        ControlBlock* controlBlock = nullptr;
+    public:
+};

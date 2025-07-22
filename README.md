@@ -11,6 +11,8 @@ Minimal examples of core and modern C++ features.
 * Circular queue
 * Parsing logic
 * Constructor behavior and initialization
+* `std::unique_ptr`
+
 
 ### Planned
 
@@ -19,7 +21,6 @@ Minimal examples of core and modern C++ features.
 * `std::variant`
 * Hash map
 * `std::shared_ptr`
-* `std::unique_ptr`
 * Variadic templates / ellipsis
 * `std::expected`
 * `std::span`
@@ -29,5 +30,7 @@ Minimal examples of core and modern C++ features.
 * `implenemting user defined literals`
 * `std::string`
 * `std::swap`
-
-
+* `Curiously Recurring Template Pattern`
+* `Spaceship operator`
+* `std::reference_wrapper`
+* `error handling`
