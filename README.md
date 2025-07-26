@@ -34,3 +34,7 @@ Minimal examples of core and modern C++ features.
 * `Spaceship operator`
 * `std::reference_wrapper`
 * `error handling`
+* `std::function`
+* `lambdas`
+* `Semaphores or Zempahores from Ostep`
+* `sequational and parralel Fold operations`
