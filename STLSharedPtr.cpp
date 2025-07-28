@@ -1,5 +1,6 @@
 #include <iostream>
 #include <utility>
+#include "STLWeakPtr.cpp"
 
 struct ControlBlock{
     size_t sharedPtrCount{};
@@ -53,6 +54,15 @@ class MySharedPtr{
             StealFrom(std::move(other));
         }
 
+        MySharedPtr(const MyWeakPtr& other){
+            controlBlock = other.controlBlock;
+            ptr = other.ptr;
+            if (controlBlock){
+                std::scoped_lock lock{controlBlock->mutex};
+                controlBlock->sharedPtrCount++;
+            }            
+        }
+
 
         MySharedPtr& operator=(const MySharedPtr& other){
             if (this == &other){
@@ -82,14 +92,21 @@ class MySharedPtr{
             return controlBlock->sharedPtrCount + controlBlock->weakPtrCount;
         }
 
-        size_t getSharedPtrCount(){
+        ControlBlock* getControlBlock(){
+            if (controlBlock){
+                return controlBlock;
+            }
+            return nullptr;
+        }
+
+        size_t getSharedPtrCount() const{
             if (!controlBlock) 
                 return 0;
             std::scoped_lock lock{controlBlock->mutex};
             return controlBlock->sharedPtrCount;
         }
 
-        size_t getWeakPtrCount(){
+        size_t getWeakPtrCount() const{
             if (!controlBlock) 
                 return 0;
             std::scoped_lock lock{controlBlock->mutex};

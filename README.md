@@ -16,7 +16,6 @@ Minimal examples of core and modern C++ features.
 
 
 ### Planned
-
 * `std::forward` and perfect forwarding
 * `std::optional`
 * `std::variant`
