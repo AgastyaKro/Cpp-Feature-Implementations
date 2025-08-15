@@ -13,6 +13,8 @@ Minimal examples of core and modern C++ features.
 * Constructor behavior and initialization
 * `std::unique_ptr`
 * `std::shared_ptr`
+* `weakPtr`
+
 
 
 ### Planned
@@ -23,6 +25,7 @@ Minimal examples of core and modern C++ features.
 * Variadic templates / ellipsis
 * `std::expected`
 * `std::span`
+* `string_view`
 * `std::mdspan`
 * `std::mutex`
 * `std::semaphore`
@@ -37,4 +40,7 @@ Minimal examples of core and modern C++ features.
 * `lambdas`
 * `Semaphores or Zempahores from Ostep`
 * `sequational and parralel Fold operations`
-* `weakPtr`
+* `function ptr`
+* `something network based`
+* `sorting algo's`
+* `most vexing parse`
