@@ -35,7 +35,7 @@ public:
     bool acquire_for(std::chrono::milliseconds timeout){
         std::unique_lock<std::mutex> lock(mtx);
         if (!cv.wait_for(lock, timeout, [this]{
-            count > 0;
+            return count > 0;
         })){
             return false;
         }
