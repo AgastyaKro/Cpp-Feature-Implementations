@@ -40,7 +40,7 @@ public:
         T item;
         {
             std::lock_guard<std::mutex> lck(mtx);
-            if (q.empty() && closed){
+            if (q.empty() || closed){
                 throw std::runtime_error("Queue closed");
             }
             item = std::move(q.front());
@@ -52,7 +52,9 @@ public:
 
     void close(){
         std::lock_guard<std::mutex> lck(mtx);
+        {
         closed = true;
+        }
         items.release(INT_MAX);
         spaces.release(INT_MAX);
     }
