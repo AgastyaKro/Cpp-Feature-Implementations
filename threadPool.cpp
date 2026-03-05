@@ -4,6 +4,9 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
+#include <future>
+#include <iostream>
+
 
 class ThreadPool{
     private:
@@ -22,20 +25,24 @@ class ThreadPool{
                     while (true){
                         std::function<void()> task;
                         {
-                            std::unique_lock<std::mutex> lock(mtx); // why unique
+                            std::unique_lock<std::mutex> lock(mtx);
 
                             cv.wait(lock, [this]{   
                                 return stop || !tasks.empty();
                             });
-                            // whats the point of the wait if we check right after too
                             if (stop && tasks.empty())
                                 return;
                             
                             task = std::move(tasks.front());
                             tasks.pop();
 
-                        }   
-                        task();
+                        } 
+                        try{
+                            task();
+                        }  
+                        catch (...){
+                            std::cerr << "task threw exception\n";
+                        }
                     }});
                 
             }
@@ -45,12 +52,28 @@ class ThreadPool{
             shutdown();
         }
 
-        void submit(std::function<void()> task){
+
+        template <class F>
+        auto submit(F&& f) -> std::future<std::invoke_result<F>>
+        {
+        
+            using R = decltype(f());
+            auto task = std::make_shared<std::packaged_task<R()>>(std::forward(f));
+
+            std::future<R> future = task->get_future();
+
             {
-                std::lock_guard<std::mutex> lock(mtx); // why not unique lock here?
-                tasks.push(std::move(task));
+                std::lock_guard<std::mutex> lck(mtx);
+
+                if (stop)
+                    throw std::runtime_error("submit on stopped ThreadPool");
+
+                tasks.emplace([task]{
+                    (*task)();
+                });
             }
-            cv.notify_one();
+        cv.notify_one();
+        return future;
         }
 
         void shutdown(){
@@ -60,7 +83,7 @@ class ThreadPool{
             }
             cv.notify_all();
 
-            for (auto& t : workers){ // why join all here, is this better in the destructor ro something if an exception is thrown
+            for (auto& t : workers){ 
                 t.join();
             }
         }
