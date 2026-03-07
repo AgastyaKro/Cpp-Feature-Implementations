@@ -53,6 +53,35 @@ class ThreadPool{
         }
 
 
+
+        template<class F, class... Args>
+        auto submit(F&& f, Args&&... args) -> std::future<std::invoke_result<F, Args...>>{
+            using R = invoke_result<F, Args...>;
+
+            auto boundTask = std::bind(
+                std::forward<F>(f), std::forward<Args>(args);
+            );
+
+            auto task = std::make_shared<std::package_task<R()>>(std::move(boundTask));
+
+            std::future<R> future = task->get_future();
+
+            {
+                std::lock_guard<std::mutex> lck(mtx);
+
+                if (stop)
+                    throw std::runtime_error("submit on stopped ThreadPool");
+                
+                task.emplace([task]{
+                    (*task)();
+            });
+        }
+        cv.notify_one();
+
+        return future;
+
+        }
+
         template <class F>
         auto submit(F&& f) -> std::future<std::invoke_result<F>>
         {
