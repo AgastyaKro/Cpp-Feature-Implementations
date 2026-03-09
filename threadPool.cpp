@@ -14,12 +14,14 @@ class ThreadPool{
         std::queue<std::function<void()>> tasks;
 
         std::mutex mtx;
-        std::condition_variable cv;
+        std::condition_variable not_empty;
+        std::condition_variable not_full;
         bool stop = false;
+        size_t maxTasks;
 
 
     public:
-        ThreadPool(size_t n){
+        ThreadPool(size_t n, size_t maxTasks_) : maxTasks(maxTasks_){
             for (size_t i = 0; i < n; i++){
                 workers.emplace_back([this]{
                     while (true){
@@ -27,7 +29,7 @@ class ThreadPool{
                         {
                             std::unique_lock<std::mutex> lock(mtx);
 
-                            cv.wait(lock, [this]{   
+                            not_empty.wait(lock, [this]{   
                                 return stop || !tasks.empty();
                             });
                             if (stop && tasks.empty())
@@ -35,6 +37,7 @@ class ThreadPool{
                             
                             task = std::move(tasks.front());
                             tasks.pop();
+                            not_full.notify_one();
                         } 
                         try{
                             task();
@@ -51,39 +54,44 @@ class ThreadPool{
         }
 
         template<class F, class... Args>
-        auto submit(F&& f, Args&&... args) -> std::future<std::invoke_result<F, Args...>>{
-            using R = invoke_result<F, Args...>;
+        auto submit(F&& f, Args&&... args) -> std::future<std::invoke_result_t<F, Args...>>{
+            using R = std::invoke_result_t<F, Args...>;
 
             auto boundTask = std::bind(
-                std::forward<F>(f), std::forward<Args>(args);
+                std::forward<F>(f), std::forward<Args>(args)...
             );
 
-            auto task = std::make_shared<std::package_task<R()>>(std::move(boundTask));
+            auto task = std::make_shared<std::packaged_task<R()>>(std::move(boundTask));
 
             std::future<R> future = task->get_future();
 
             {
-                std::lock_guard<std::mutex> lck(mtx);
+                std::unique_lock<std::mutex> lck(mtx);
+
+                not_full.wait(lck, [this]{
+                    return stop || tasks.size() < maxTasks;
+                });
 
                 if (stop)
                     throw std::runtime_error("submit on stopped ThreadPool");
                 
-                task.emplace([task]{
+                tasks.emplace([task]{
                     (*task)();
-            });
-        }
-        cv.notify_one();
 
+                });
+             not_empty.notify_one();
+            }
         return future;
 
-        }
+    }
 
         void shutdown(){
             {
                 std::lock_guard<std::mutex> lock(mtx);
                 stop = true;
             }
-            cv.notify_all();
+            not_empty.notify_all();
+            not_full.notify_all();
 
             for (auto& t : workers){ 
                 t.join();
