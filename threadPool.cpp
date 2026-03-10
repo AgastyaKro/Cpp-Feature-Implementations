@@ -2,7 +2,6 @@
 #include <thread>
 #include <functional>
 #include <mutex>
-#include <queue>
 #include <condition_variable>
 #include <future>
 #include <iostream>
@@ -11,15 +10,14 @@
 class ThreadPool{
     private:
         std::vector<std::thread> workers;
-        std::queue<std::function<void()>> tasks;
 
         using Task = std::function<void()>;
 
         std::vector<Task> buffer;
-        int head = 0;
-        int tail = 0;
-        int capacity;
-        int count = 0;
+        size_t head = 0;
+        size_t tail = 0;
+        size_t capacity;
+        size_t count = 0;
         
 
         std::mutex mtx;
@@ -50,11 +48,12 @@ class ThreadPool{
                             if (stop && count == 0)
                                 return;
                             
-                            task = std::move(tasks.front());
+                            task = std::move(buffer[head]);
                             head = (head + 1) % capacity;
-                            count--;
-                            not_full.notify_one();
+                            --count;
                         } 
+                        not_full.notify_one();
+
                         try{
                             task();
                         }  
@@ -95,7 +94,7 @@ class ThreadPool{
                     (*task)();
                 };
                 tail = (tail + 1) % capacity;
-                count++;
+                ++count;
             }
         not_empty.notify_one();
         return future;
@@ -112,6 +111,11 @@ class ThreadPool{
             not_full.notify_all();
 
             for (auto& t : workers){ 
+                if (t.joinable()){
+                    if (t.get_id() == std::this_thread::get_id()){
+                        continue;
+                    }
+                }
                 t.join();
             }
         }
