@@ -13,30 +13,46 @@ class ThreadPool{
         std::vector<std::thread> workers;
         std::queue<std::function<void()>> tasks;
 
+        using Task = std::function<void()>;
+
+        std::vector<Task> buffer;
+        int head = 0;
+        int tail = 0;
+        int capacity;
+        int count = 0;
+        
+
         std::mutex mtx;
         std::condition_variable not_empty;
         std::condition_variable not_full;
         bool stop = false;
-        size_t maxTasks;
 
 
     public:
-        ThreadPool(size_t n, size_t maxTasks_) : maxTasks(maxTasks_){
+        ThreadPool(size_t n, size_t maxTasks_) : capacity(maxTasks_), buffer(maxTasks_){
+
+            if (n == 0)
+                throw std::invalid_argument("ThreadPool must have at least one worker");
+            if (capacity == 0)
+                throw std::invalid_argument("maxTasks must be > 0");
+
             for (size_t i = 0; i < n; i++){
                 workers.emplace_back([this]{
                     while (true){
-                        std::function<void()> task;
+                        Task task;
                         {
                             std::unique_lock<std::mutex> lock(mtx);
 
                             not_empty.wait(lock, [this]{   
-                                return stop || !tasks.empty();
+                                return stop || count > 0;
                             });
-                            if (stop && tasks.empty())
+
+                            if (stop && count == 0)
                                 return;
                             
                             task = std::move(tasks.front());
-                            tasks.pop();
+                            head = (head + 1) % capacity;
+                            count--;
                             not_full.notify_one();
                         } 
                         try{
@@ -69,25 +85,27 @@ class ThreadPool{
                 std::unique_lock<std::mutex> lck(mtx);
 
                 not_full.wait(lck, [this]{
-                    return stop || tasks.size() < maxTasks;
+                    return stop || count < capacity;
                 });
 
                 if (stop)
                     throw std::runtime_error("submit on stopped ThreadPool");
                 
-                tasks.emplace([task]{
+                buffer[tail] = [task]{
                     (*task)();
-
-                });
-             not_empty.notify_one();
+                };
+                tail = (tail + 1) % capacity;
+                count++;
             }
+        not_empty.notify_one();
         return future;
-
     }
 
         void shutdown(){
             {
                 std::lock_guard<std::mutex> lock(mtx);
+                if (stop)
+                    return;
                 stop = true;
             }
             not_empty.notify_all();
@@ -97,9 +115,5 @@ class ThreadPool{
                 t.join();
             }
         }
-
-
-
-
 
 };
