@@ -19,16 +19,14 @@ class ThreadPool{
         size_t capacity;
         size_t count = 0;
         
-
         std::mutex mtx;
         std::condition_variable not_empty;
         std::condition_variable not_full;
         bool stop = false;
 
-
     public:
         ThreadPool(size_t n, size_t maxTasks_) : capacity(maxTasks_), buffer(maxTasks_){
-
+            
             if (n == 0)
                 throw std::invalid_argument("ThreadPool must have at least one worker");
             if (capacity == 0)
@@ -119,5 +117,4 @@ class ThreadPool{
                 t.join();
             }
         }
-
 };
