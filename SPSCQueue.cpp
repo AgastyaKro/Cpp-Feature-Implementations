@@ -2,6 +2,7 @@
 #include <thread>
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 
 class SPSCQueue{
@@ -55,6 +56,7 @@ bool pop(int& value){
         return false;
     value = buffer_[head];
     head_.index.store((head + 1) & mask_, std::memory_order_release);
+    return true;
 }
 
 bool empty() const {
@@ -74,8 +76,70 @@ bool empty() const {
         return capacity_ - 1;
     }
 
-
-
-
-
 };
+
+int main(){
+    {
+        SPSCQueue q(8);
+        assert(q.empty());
+        assert(!q.full());
+        
+        assert(q.push(10));
+        assert(q.push(20));
+        assert(q.push(30));
+
+        int value = 0;
+        assert(q.pop(value) && value == 10);
+        assert(q.pop(value) && value == 20);
+        assert(q.pop(value) && value == 30);
+        assert(!q.pop(value));
+        assert(!q.full());
+        assert(q.empty());
+
+    }
+
+    {
+        constexpr int N = 1'000'000;
+        SPSCQueue q(1024);
+
+        std::atomic<bool> producer_done = false;
+        std::atomic<long long> sum_consumed = 0;
+
+        std::thread producer([&](){
+            for (int i = 1; i <= N; i++){
+                while (!q.push(i)){
+
+                }
+            }
+            producer_done.store(true, std::memory_order_release);
+        }
+        );
+
+        std::thread consumer([&] (){
+            long long local_sum = 0;
+            int value = 0;
+
+            while (!producer_done.load(std::memory_order_acquire) || !q.empty()){
+                if (q.pop(value)){
+                    local_sum += value;
+                }
+
+            }
+            sum_consumed.store(local_sum, std::memory_order_release);
+        });
+
+        producer.join();
+        consumer.join();
+
+        const long long expected = 1LL * N * (N+1) / 2;
+        const long long got = sum_consumed.load(std::memory_order_acquire);
+
+        std::cout << "Expected sum: " << expected << "\n";
+        std::cout << "Consumed sum: " << got << "\n";
+        assert(expected == got);
+    }
+
+    std::cout << "All tests passed." << "\n";
+    return 0;
+
+}
