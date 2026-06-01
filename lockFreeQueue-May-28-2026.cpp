@@ -4,11 +4,11 @@
 #include <cstddef>
 
 template<typename T, std::size_t Capacity>
-class lockFreeSPSCQueue{
-
+class LockFreeSPSCQueue{
+    static_assert(Capacity >= 2, "Capacity must be at least 2");
 private:
-    alignas(64) std::atomic<size_t> tail_{0};
-    alignas(64) std::atomic<size_t> head_{0};
+    alignas(64) std::atomic<std::size_t> tail_{0};
+    alignas(64) std::atomic<std::size_t> head_{0};
     std::array<T, Capacity> buffer_{};
 
     static constexpr std::size_t increment(std::size_t index){
@@ -29,7 +29,7 @@ public:
 
     }   
 
-    bool push(T value){
+    bool push(const T& value){
         const std::size_t tail = tail_.load(std::memory_order_relaxed);
         const std::size_t nextTail = increment(tail);
 
