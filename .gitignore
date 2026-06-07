@@ -1,0 +1,7 @@
+a.out
+*.out
+*.o
+*.dSYM/
+.DS_Store
+semaphore_test
+build/
