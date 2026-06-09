@@ -25,9 +25,13 @@ public:
 
     void push(T value){
         slotsLeft_.acquire();
-        {
+        try {
             std::lock_guard<std::mutex> lock(mtx_);
             q_.push(std::move(value));
+        }
+        catch (...){
+            slotsLeft_.release();
+            throw;
         }
         itemsAvailable_.release();
     }
@@ -52,9 +56,13 @@ public:
         if (!slotsLeft_.try_acquire()){
             return false;
         }
-        {
+        try {
             std::lock_guard<std::mutex> lock(mtx_);
             q_.push(std::move(value));
+        }
+        catch (...){
+            slotsLeft.release();
+            throw;
         }
         itemsAvailable_.release();
         return true;
@@ -81,9 +89,13 @@ public:
         if (!slotsLeft_.try_acquire_for(timeout))
             return false;
 
-        {
+        try {
             std::lock_guard<std::mutex> lock(mtx_);
             q_.push(std::move(value));
+        }
+        catch (...){
+            slotsLeft.release();
+            throw;
         }
         itemsAvailable_.release();
         return true;
