@@ -61,7 +61,7 @@ public:
             q_.push(std::move(value));
         }
         catch (...){
-            slotsLeft.release();
+            slotsLeft_.release();
             throw;
         }
         itemsAvailable_.release();
@@ -94,7 +94,7 @@ public:
             q_.push(std::move(value));
         }
         catch (...){
-            slotsLeft.release();
+            slotsLeft_.release();
             throw;
         }
         itemsAvailable_.release();

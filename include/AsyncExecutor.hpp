@@ -23,7 +23,7 @@ public:
     AsyncExecutor& operator=(AsyncExecutor&&) = delete;
 
     template<typename F, typename... Args>
-    auto async(F&& f, Args&&... args) -> std::future<std::invoke_result<F, Args...>>{
+    auto async(F&& f, Args&&... args) -> std::future<std::invoke_result_t<F, Args...>>{
         return pool_.submit(std::forward<F>(f), std::forward<Args>(args)...);
     }
 
