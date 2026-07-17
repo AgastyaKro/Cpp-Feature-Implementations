@@ -2,7 +2,7 @@
 ---
 
 ## C++ Feature Demos
-
+Warning: This README is no longer mantained, I don't focus my attention on the README
 Minimal examples of core and modern C++ features.
 
 ### Implemented
