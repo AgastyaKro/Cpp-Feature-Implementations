@@ -25,7 +25,6 @@ public:
         --count_;
     }
 
-
     void release(){
         {
             std::lock_guard<std::mutex> lock(mtx_);

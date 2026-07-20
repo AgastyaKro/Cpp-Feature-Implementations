@@ -1,0 +1,43 @@
+#include <vector>
+#include <cstddef>
+#include <cstdint>
+#include <cmath>
+
+using namespace std;
+
+template <typename T>
+struct Node{
+    Node* next_;
+    T val_;
+    int64_t key_;
+};
+
+template <typename T>
+class hashmapSingleThread{
+private:
+    vector<Node<T>*> buckets_;
+    int64_t capacity_;
+
+    void resize(){
+        int64_t newCapacity = pow(2.0, capacity_);
+        vector<Node<T>*> newBuckets;
+
+        for (auto& bucket : buckets_){
+            Node* currNode = bucket;
+
+            while (currNode){
+                Node* nextNode = bucket->next_;
+                insert(currNode, newBuckets);
+                currNode = nextNode;
+            }
+        }
+    }
+
+    void insert(Node<T>* ptr, vector<Node<T>*& buckets){
+        int64_t bucket = ptr->key_ & (buckets.size() - 1); // this will give us the bucket
+    }
+
+public:
+
+
+};
