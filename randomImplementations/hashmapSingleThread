@@ -33,8 +33,10 @@ private:
         }
     }
 
-    void insert(Node<T>* ptr, vector<Node<T>*& buckets){
+    void insert(Node<T>* ptr, vector<Node<T>*>& buckets){
         int64_t bucket = ptr->key_ & (buckets.size() - 1); // this will give us the bucket
+        ptr->next_ = buckets[bucket];   // new node points to old head (null or not) -> this saves us a branch
+        buckets[bucket] = ptr;          
     }
 
 public:
