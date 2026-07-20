@@ -31,6 +31,8 @@ private:
                 currNode = nextNode;
             }
         }
+        buckets_ = newBuckets;
+        capacity_ = newCapacity;
     }
 
     void insert(Node<T>* ptr, vector<Node<T>*>& buckets){
