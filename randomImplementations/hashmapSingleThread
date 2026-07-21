@@ -1,7 +1,10 @@
 #include <vector>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
+#include <utility>
+#include <optional>
+
+
 
 using namespace std;
 
@@ -17,6 +20,8 @@ class hashmapSingleThread{
 private:
     int64_t capacity_;
     vector<Node<T>*> buckets_;
+    int64_t size_;
+
 
     void resize(){
         int64_t newCapacity = capacity_ << 1;
@@ -42,7 +47,7 @@ private:
     }
 
     int64_t nearestTwoExp(int64_t capacity){
-        int size = 2;
+        int64_t size = 2;
         while (size < capacity){
             size = size << 1;
         }
@@ -50,12 +55,13 @@ private:
     }
 
 public:
-    hashmapSingleThread(int capacity) : capacity_(nearestTwoExp(capacity)), buckets_(capacity_, nullptr){}
+    hashmapSingleThread(int capacity) : capacity_(nearestTwoExp(capacity)), buckets_(capacity_, nullptr), size_(0){}
 
     void swap(hashmapSingleThread& other) noexcept{
         using std::swap;
         swap(capacity_, other.capacity_);
         swap(buckets_, other.buckets_);
+        swap(size_, other.size_);
     }
 
     hashmapSingleThread& operator=(const hashmapSingleThread& other){
@@ -63,16 +69,80 @@ public:
         return *this;
     }
 
-    hashmapSingleThread(const hashmapSingleThread& other) : capacity_(other.capacity_), buckets_(capacity_, nullptr){
+    hashmapSingleThread(const hashmapSingleThread& other) : 
+    capacity_(other.capacity_), buckets_(capacity_, nullptr), size_(other.size_){
         for (int64_t i = 0; i < capacity_; i++){
             Node<T>** tail = &buckets_[i];
 
             for (auto src = other.buckets_[i]; src; src = src->next_){
-                *tail = new Node(src->next_, src->val_, src->key_);
+                *tail = new Node<T>(nullptr, src->val_, src->key_);
                 tail = &((*tail)->next_);
             }
         }
     }
 
+    hashmapSingleThread(hashmapSingleThread&& other) noexcept : 
+    capacity_(std::exchange(other.capacity_, 0)), 
+    buckets_(std::move(other.buckets_)),
+    size_(std::exchange(other.size_, 0)) {}
+
+    hashmapSingleThread& operator=(hashmapSingleThread&& other) noexcept{
+        hashmapSingleThread(std::move(other)).swap(*this);
+        return *this;
+    }
+
+    ~hashmapSingleThread(){
+        for (auto& bucket : buckets_){
+            auto head = bucket;
+            while (head){
+                Node<T>* next = head->next_;
+                delete head;
+                head = next;
+            }
+        }
+    }
+
+    void put(int64_t key, T value){
+        int64_t bucket = key & (capacity_ - 1);
+        for (Node<T>* n = buckets_[bucket]; n; n = n->next_){
+            if (n->key_ == key){
+                n->val_ = value;
+                return;
+            }
+        }
+        buckets_[bucket] = new Node<T>{buckets_[bucket],  value, key};        
+        if (size_ > capacity_ * 3 / 4)
+            resize();
+        
+    }
+
+    Node<T>* get(int64_t key){
+        int64_t bucket = key & (capacity_ - 1);
+        auto nodePtr = buckets_[bucket];
+
+        while (nodePtr){
+            if (nodePtr->key_ == key)
+                return nodePtr;
+            nodePtr = nodePtr->next_;
+        }
+        return nullptr;
+    }
+
+    bool erase(int64_t key){
+        int64_t bucket = key & (capacity_ - 1);
+        Node<T>** link = &buckets_[bucket];
+
+        while (*link){
+            Node<T>* node = *link;
+            if (node->key_ == key){
+                *link = node->next_;
+                delete node;
+                return true;
+                --size;
+            }
+            link = &node->next_;
+        }
+        return false;
+    }
 
 };
